@@ -8,142 +8,65 @@ In PL/SQL sind **Records** zusammengesetzte Datentypen, mit denen du mehrere Wer
 > - PL/SQL `RECORD` ≈ C# `class` mit einzelnen Feldern (z. B. `EmpNo`, `Salary`)
 > - `%ROWTYPE` ≈ C# `class` mit allen Spalten einer Tabelle als Properties
 
-### 🔁 Vergleich: PL/SQL Record vs. C# class
-
-| Merkmal                      | PL/SQL Record                            | C# class                                  |
-|------------------------------|------------------------------------------|--------------------------------------------|
-| Zusammengesetzter Typ        | ✅ Mehrere Felder                        | ✅ Mehrere Felder                           |
-| Typdefinition                | `TYPE ... IS RECORD (...)`              | `class`                                    |
-| Zugriff auf Felder           | `rec.empno`, `rec.sal`                  | `obj.EmpNo`, `obj.Salary`                  |
-| Speicherung in Variable      | Direkt (z. B. `my_rec emp_t;`)          | Direkt (z. B. `var emp = new Employee();`) |
-| Übergabe an Methode          | by-value (Standard)                     | by-reference (Standard)                    |
-| Vergleich mit Tabellenzeile  | `%ROWTYPE` → komplette Zeile            | `class` mit allen passenden Properties     |
-| Verwendung in Funktionen     | ✅ Parameter-Übergabe                    | ✅ als Parameter, Rückgabewert usw.         |
-
-### 🔧 Beispiel PL/SQL Record:
-```sql
-TYPE emp_t IS RECORD (
-  empno NUMBER,
-  sal   NUMBER
-);
-my_emp emp_t;
-my_emp.empno := 123;
-```
-
-### 🔧 Vergleichbares in C#:
-```csharp
-public class Employee
-{
-    public int EmpNo;
-    public decimal Salary;
-}
-
-// Verwendung:
-var emp = new Employee();
-emp.EmpNo = 123;
-```
-
 ---
 
-## 📦 Arten von Records
+## 🧪 Übungsschritte – Records anwenden & verstehen
 
-### ✅ 1. `%ROWTYPE` – automatisch erzeugt
-Ein Record, der **alle Spalten** einer Tabelle oder View enthält.
-
+### 🔹 1. `%ROWTYPE` verwenden
 ```sql
+SET SERVEROUTPUT ON;
 DECLARE
     my_emp EMP%ROWTYPE;
 BEGIN
-    SELECT * INTO my_emp FROM EMP FETCH FIRST ROW ONLY;
-    dbms_output.put_line(my_emp.ename || ' verdient ' || my_emp.sal);
+    SELECT * INTO my_emp FROM EMP WHERE ename = 'KING';
+    dbms_output.put_line('Nummer: ' || my_emp.empno || ', Gehalt: ' || my_emp.sal);
 END;
+/  
 ```
-
-🔸 Vorteile:
-- Spart Schreibarbeit
-- Immer aktuell, wenn sich die Tabelle ändert
-
-🔸 Nachteil:
-- Enthält **alle Spalten**, auch wenn man nur wenige braucht
+📌 Du bekommst **alle Spalten** aus der EMP-Tabelle. Ideal für komplette Zeilen.
 
 ---
 
-### ✅ 2. Selbst definierter Record
-Ein Record, den du manuell definierst – mit nur den Feldern, die du brauchst.
-
+### 🔸 2. Eigenes Record erstellen (lokal)
 ```sql
 DECLARE
-    TYPE empinfo_t IS RECORD (
-        empnum NUMBER,
-        empsal NUMBER
+    TYPE emp_basic_t IS RECORD (
+        empno NUMBER,
+        ename VARCHAR2(50)
     );
-    my_emp empinfo_t;
+    empdata emp_basic_t;
 BEGIN
-    my_emp.empnum := 1001;
-    my_emp.empsal := 2500;
-    dbms_output.put_line('Emp-Nr: ' || my_emp.empnum || ', Gehalt: ' || my_emp.empsal);
+    SELECT empno, ename INTO empdata FROM EMP WHERE empno = 7839;
+    dbms_output.put_line('Nummer: ' || empdata.empno || ', Name: ' || empdata.ename);
 END;
+/  
 ```
-
-🔸 Vorteil:
-- Nur die Felder, die man braucht
-- Klar und übersichtlich
-
-🔸 Nachteil:
-- Muss bei Änderungen manuell angepasst werden
+📌 Du speicherst nur **ausgewählte Spalten**. Gut für gezielte Datenverarbeitung.
 
 ---
 
-## 🔁 Übergabe an Prozeduren / Funktionen
-
-Du kannst selbst definierte Records auch als **Parameter** verwenden, z. B. innerhalb eines Packages:
-
-```sql
-CREATE OR REPLACE PACKAGE salman AS
-    TYPE anonemp_t IS RECORD (empnum NUMBER, empsal NUMBER);
-    FUNCTION CALCBONUS(anonemp anonemp_t) RETURN NUMBER;
-END;
-
-CREATE OR REPLACE PACKAGE BODY salman AS
-    FUNCTION CALCBONUS(anonemp anonemp_t) RETURN NUMBER IS
-    BEGIN
-        IF anonemp.empnum > 5000 THEN
-            RETURN anonemp.empsal + 200;
-        ELSE
-            RETURN anonemp.empsal + 100;
-        END IF;
-    END;
-END;
-```
-
-**Aufruf:**
+### 🔁 3. Verhalten bei Zuweisung – by-value
 ```sql
 DECLARE
-    myemp salman.anonemp_t;
-    bonus NUMBER;
+    TYPE emp_short_t IS RECORD (
+        empno NUMBER,
+        sal   NUMBER
+    );
+    e1 emp_short_t;
+    e2 emp_short_t;
 BEGIN
-    myemp.empnum := 4000;
-    myemp.empsal := 1800;
-    bonus := salman.CALCBONUS(myemp);
-    dbms_output.put_line('Bonus: ' || bonus);
+    e1.empno := 1001;
+    e1.sal := 2000;
+
+    e2 := e1;
+    e2.sal := e2.sal + 100;
+
+    dbms_output.put_line('e1.sal = ' || e1.sal); -- 2000
+    dbms_output.put_line('e2.sal = ' || e2.sal); -- 2100
 END;
+/  
 ```
-
----
-
-## 🔄 Zuweisung und Kopieren von Records
-
-Records werden in PL/SQL **by-value** übergeben:
-```sql
-my_emp2 := my_emp1;
-```
-
-Wenn du ein Feld von `my_emp2` änderst, bleibt `my_emp1` unverändert. Es wird also **nicht mit Zeiger gearbeitet**, sondern kopiert:
-
-```sql
-my_emp2.empsal := my_emp2.empsal + 100;
-dbms_output.put_line(my_emp1.empsal); -- bleibt gleich
-```
+📌 Du siehst: **Records werden kopiert**, nicht referenziert. Änderungen wirken sich **nicht** auf das Original aus.
 
 ---
 
@@ -164,9 +87,11 @@ dbms_output.put_line(my_emp1.empsal); -- bleibt gleich
 |--------------------------------------------|---------------------------|
 | Ganze Zeile aus Tabelle einlesen           | `%ROWTYPE`               |
 | Nur einzelne Felder nötig                  | `TYPE IS RECORD`         |
-| Record an Funktion oder Package übergeben  | `TYPE IS RECORD` im Header |
+| Record an Funktion oder Package übergeben  | `TYPE IS RECORD` im Header (kommt später) |
 | Kopieren ohne Referenz                     | Beide (werden by-value übergeben) |
 
 👉 Records sind ein extrem nützliches Werkzeug, um **strukturierte Daten einfach und übersichtlich zu verarbeiten**.
 
 ---
+
+📁 Nächster Schritt: [Zum Beispiel-Repo für Records](https://github.com/ad220296/Records)
