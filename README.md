@@ -1,14 +1,47 @@
-# Records
 # 📘 2.1 Records in PL/SQL
 
 ## 🔍 Einführung
 
-In PL/SQL sind **Records** zusammengesetzte Datentypen, mit denen du mehrere Werte (z. B. wie eine Tabellenzeile) in einer einzigen Variablen speichern kannst. Sie sind vergleichbar mit "structs" in C oder "Datensätzen" in Pascal.
+In PL/SQL sind **Records** zusammengesetzte Datentypen, mit denen du mehrere Werte (z. B. wie eine Tabellenzeile) in einer einzigen Variablen speichern kannst. Sie sind vergleichbar mit "Datensätzen" in Pascal oder **einfachen Klassen (`class`) in C#**.
 
-Sie werden verwendet, wenn:
-- mehrere Werte logisch zusammengehören (z. B. Name + Gehalt)
-- man eine ganze Tabellenzeile lesen möchte (`%ROWTYPE`)
-- man kompakt Daten an Funktionen oder Prozeduren übergeben will
+> 📌 In C# ist eine `class` mit mehreren Eigenschaften vergleichbar:
+> - PL/SQL `RECORD` ≈ C# `class` mit einzelnen Feldern (z. B. `EmpNo`, `Salary`)
+> - `%ROWTYPE` ≈ C# `class` mit allen Spalten einer Tabelle als Properties
+
+### 🔁 Vergleich: PL/SQL Record vs. C# class
+
+| Merkmal                      | PL/SQL Record                            | C# class                                  |
+|------------------------------|------------------------------------------|--------------------------------------------|
+| Zusammengesetzter Typ        | ✅ Mehrere Felder                        | ✅ Mehrere Felder                           |
+| Typdefinition                | `TYPE ... IS RECORD (...)`              | `class`                                    |
+| Zugriff auf Felder           | `rec.empno`, `rec.sal`                  | `obj.EmpNo`, `obj.Salary`                  |
+| Speicherung in Variable      | Direkt (z. B. `my_rec emp_t;`)          | Direkt (z. B. `var emp = new Employee();`) |
+| Übergabe an Methode          | by-value (Standard)                     | by-reference (Standard)                    |
+| Vergleich mit Tabellenzeile  | `%ROWTYPE` → komplette Zeile            | `class` mit allen passenden Properties     |
+| Verwendung in Funktionen     | ✅ Parameter-Übergabe                    | ✅ als Parameter, Rückgabewert usw.         |
+
+### 🔧 Beispiel PL/SQL Record:
+```sql
+TYPE emp_t IS RECORD (
+  empno NUMBER,
+  sal   NUMBER
+);
+my_emp emp_t;
+my_emp.empno := 123;
+```
+
+### 🔧 Vergleichbares in C#:
+```csharp
+public class Employee
+{
+    public int EmpNo;
+    public decimal Salary;
+}
+
+// Verwendung:
+var emp = new Employee();
+emp.EmpNo = 123;
+```
 
 ---
 
@@ -137,5 +170,3 @@ dbms_output.put_line(my_emp1.empsal); -- bleibt gleich
 👉 Records sind ein extrem nützliches Werkzeug, um **strukturierte Daten einfach und übersichtlich zu verarbeiten**.
 
 ---
-
-📁 Nächster Schritt: [Zum Beispiel-Repo für Records](https://github.com/ad220296/Records)
