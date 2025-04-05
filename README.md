@@ -1,5 +1,10 @@
 # 📘 2.1 Records in PL/SQL
 
+Zu:
+
+- 🧩 [Nested Tables (Array & Hashed)](https://github.com/ad220296/Nested_Tables)
+- 📦 [Packages & Sichtbarkeit](https://github.com/ad220296/Packages)
+
 ## 🔍 Einführung
 
 In PL/SQL sind **Records** zusammengesetzte Datentypen, mit denen du mehrere Werte (z. B. wie eine Tabellenzeile) in einer einzigen Variablen speichern kannst. Sie sind vergleichbar mit "Datensätzen" in Pascal oder **einfachen Klassen (`class`) in C#**.
